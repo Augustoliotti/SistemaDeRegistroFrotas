@@ -28,12 +28,18 @@
                         secondary: "#3b82f6",
                         accent: "#f59e0b",
                         dark: "#1f2937",
-                        danger: "#dc2626" // Cor vermelha para perigo
+                        danger: "#dc2626"
                     }
                 }
             }
         }
     </script>
+    <style>
+        .nav-link-active {
+            color: #1e40af; /* --cor-primary */
+            border-bottom: 2px solid #1e40af;
+        }
+    </style>
 </head>
 <body class="min-h-screen bg-gray-50">
     <header class="bg-white shadow-lg sticky top-0 z-50">
@@ -45,8 +51,8 @@
                 </div>
                 
                 <div class="hidden md:flex space-x-6">
-                    <a href="#dashboard" class="text-dark hover:text-primary transition-colors font-medium">Dashboard</a>
-                    <a href="#log" class="text-dark hover:text-primary transition-colors font-medium">Log de Eventos</a>
+                    <a href="#" class="text-dark hover:text-primary transition-colors font-medium pb-1 nav-link nav-link-active" data-tab="log">Dashboard/Log</a>
+                    <a href="#" class="text-dark hover:text-primary transition-colors font-medium pb-1 nav-link" data-tab="motoristas">Motoristas</a>
                 </div>
                 
                 <div class="flex items-center space-x-4">
@@ -59,89 +65,82 @@
     </header>
 
     <main>
-        <section id="dashboard" class="py-8">
-            <div class="container mx-auto px-4">
-                <h2 class="text-3xl font-bold text-dark mb-8">Dashboard da Frota</h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-primary">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Total de Veículos</p>
-                                <p class="text-2xl font-bold text-dark">161</p>
-                            </div>
-                            <i class="fas fa-truck text-primary text-2xl"></i>
-                        </div>
-                    </div>
+        <div id="tab-panels" class="container mx-auto px-4">
+
+            <div id="tab-panel-log" class="tab-panel py-8">
+                <section id="dashboard">
+                    <h2 class="text-3xl font-bold text-dark mb-8">Dashboard da Frota</h2>
                     
-                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-accent">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Em Operação</p>
-                                <p class="text-2xl font-bold text-dark">161</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-primary">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Total de Veículos</p>
+                                    <p class="text-2xl font-bold text-dark">161</p>
+                                </div>
+                                <i class="fas fa-truck text-primary text-2xl"></i>
                             </div>
-                            <i class="fas fa-check-circle text-accent text-2xl"></i>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-accent">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Em Operação</p>
+                                    <p class="text-2xl font-bold text-dark">161</p>
+                                </div>
+                                <i class="fas fa-check-circle text-accent text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-secondary">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Em Manutenção</p>
+                                    <p class="text-2xl font-bold text-dark" id="stats-manutencao">0</p>
+                                </div>
+                                <i class="fas fa-tools text-secondary text-2xl"></i>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <p class="text-gray-600 text-sm">Fora de Operação</p>
+                                    <p class="text-2xl font-bold text-dark" id="stats-fora-operacao">0</p>
+                                </div>
+                                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-secondary">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Em Manutenção</p>
-                                <p class="text-2xl font-bold text-dark" id="stats-manutencao">0</p>
-                            </div>
-                            <i class="fas fa-tools text-secondary text-2xl"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <p class="text-gray-600 text-sm">Fora de Operação</p>
-                                <p class="text-2xl font-bold text-dark" id="stats-fora-operacao">0</p>
-                            </div>
-                            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
-                        </div>
-                    </div>
-                </div>
+                </section>
 
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
                     <h3 class="text-xl font-bold text-dark mb-6">Registrar Novo Acontecimendo</h3>
                     
                     <form id="logForm" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
-                        
                         <div class="md:col-span-2">
                             <label for="inputFrota" class="block text-sm font-medium text-gray-700 mb-2">Frota (Pesquisável):</label>
                             <input type="text" id="inputFrota" list="frotaList" placeholder="Digite ou selecione" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
-                            <datalist id="frotaList">
-                                </datalist>
+                            <datalist id="frotaList"></datalist>
                         </div>
-                        
                         <div class="md:col-span-2">
                             <label for="inputPlaca" class="block text-sm font-medium text-gray-700 mb-2">Placa:</label>
                             <input type="text" id="inputPlaca" placeholder="Digite a Placa" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
                         </div>
-
                         <div class="md:col-span-2">
                             <label for="inputMotorista" class="block text-sm font-medium text-gray-700 mb-2">Motorista:</label>
-                            <input type="text" id="inputMotorista" placeholder="Nome do Motorista" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                            <input type="text" id="inputMotorista" list="motoristaList" placeholder="Nome - Crachá" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                            <datalist id="motoristaList"></datalist>
                         </div>
-                        
                         <div class="md:col-span-2">
                             <label for="inputTipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo:</label>
                             <input type="text" id="inputTipo" placeholder="Automático" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly required>
                         </div>
-
                         <div class="md:col-span-2">
                             <label for="inputMotivo" class="block text-sm font-medium text-gray-700 mb-2">Motivo:</label>
                             <input type="text" id="inputMotivo" placeholder="Ex: Manutenção" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
                         </div>
-
                         <div class="md:col-span-2">
                             <label for="inputData" class="block text-sm font-medium text-gray-700 mb-2">Data e Horário:</label>
                             <input type="text" id="inputData" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Selecione a data" required>
                         </div>
-                        
                         <div class="md:col-span-12">
                             <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors font-medium">
                                 <i class="fas fa-plus mr-2"></i>Adicionar Registro
@@ -149,16 +148,14 @@
                         </div>
                     </form>
                 </div>
-
+                
                 <div id="log" class="bg-white rounded-xl shadow-lg p-6">
                     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
                         <h3 class="text-xl font-bold text-dark">Log de Acontecimentos</h3>
-                        
                         <div class="w-full md:w-auto">
                             <input type="text" id="searchInput" placeholder="Pesquisar por motorista, frota, placa, etc..." class="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
                         </div>
                     </div>
-                    
                     <div class="overflow-x-auto">
                         <table class="w-full" id="logTable">
                             <thead>
@@ -178,25 +175,61 @@
                                         Nenhum registro encontrado.
                                     </td>
                                 </tr>
-                                </tbody>
+                            </tbody>
                         </table>
                     </div>
                 </div>
-            </div>
-        </section>
-    </main>
+            </div> <div id="tab-panel-motoristas" class="tab-panel py-8 hidden">
+                <div id="motoristas-form-card" class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 class="text-xl font-bold text-dark mb-6">Gerenciamento de Motoristas</h3>
+                    <form id="motoristaForm" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                        <div class="md:col-span-4">
+                            <label for="inputNomeMotorista" class="block text-sm font-medium text-gray-700 mb-2">Nome do Motorista:</label>
+                            <input type="text" id="inputNomeMotorista" placeholder="Ex: João da Silva" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                        </div>
+                        <div class="md:col-span-3">
+                            <label for="inputCracha" class="block text-sm font-medium text-gray-700 mb-2">Nº do Crachá/Matrícula:</label>
+                            <input type="text" id="inputCracha" placeholder="Ex: 12345" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                        </div>
+                        <div class="md:col-span-3">
+                            <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors font-medium w-full">
+                                <i class="fas fa-user-plus mr-2"></i>Salvar Motorista
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="motoristas-list-card" class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 class="text-xl font-bold text-dark mb-6">Motoristas Cadastrados</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full" id="motoristasTable">
+                            <thead>
+                                <tr class="bg-gray-50 border-b">
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nome</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Crachá/Matrícula</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="motoristasTableBody">
+                                <tr id="no-motoristas-row" class="border-b">
+                                    <td colspan="3" class="px-4 py-10 text-center text-gray-500 italic">
+                                        Nenhum motorista cadastrado.
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div> </div> </main>
 
     <footer class="bg-dark text-white py-8 mt-12">
-        <div class="container mx-auto px-4">
-            </div>
-    </footer>
+        </footer>
 
     <div id="notification" class="fixed bottom-5 right-5 z-50 p-4 rounded-lg shadow-lg text-white transition-all transform translate-x-[calc(100%+2rem)] opacity-0">
         </div>
 
     <div id="confirmacaoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0 invisible transition-all duration-300 ease-in-out">
         <div id="modalOverlay" class="absolute inset-0 bg-black/50 cursor-pointer"></div>
-        
         <div class="relative w-full max-w-md bg-white rounded-lg shadow-xl p-6">
             <div class="flex items-start">
                 <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
@@ -208,12 +241,11 @@
                     </h3>
                     <div class="mt-2">
                         <p class="text-sm text-gray-600">
-                            Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.
+                            Tem certeza que deseja excluir? Esta ação não pode ser desfeita.
                         </p>
                     </div>
                 </div>
             </div>
-            
             <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
                 <button id="btnConfirmarExclusao" type="button" class="inline-flex w-full justify-center rounded-md border border-transparent bg-danger px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm">
                     Excluir
@@ -224,6 +256,45 @@
             </div>
         </div>
     </div>
+
+    <div id="editModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0 invisible transition-all duration-300 ease-in-out">
+        <div id="editModalOverlay" class="absolute inset-0 bg-black/50 cursor-pointer"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-lg shadow-xl">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-bold text-dark">Editar Registro do Log</h3>
+                <button id="closeEditModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editForm">
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="hidden" id="editDocId">
+                    <div>
+                        <label for="editFrota" class="block text-sm font-medium text-gray-700 mb-2">Frota (Pesquisável):</label>
+                        <input type="text" id="editFrota" list="frotaList" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                    </div>
+                    <div>
+                        <label for="editData" class="block text-sm font-medium text-gray-700 mb-2">Data e Horário:</label>
+                        <input type="text" id="editData" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Selecione a data e hora" required>
+                    </div>
+                    <div class="md:col-span-2">
+                        <label for="editMotivo" class="block text-sm font-medium text-gray-700 mb-2">Motivo:</label>
+                        <textarea id="editMotivo" rows="3" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required></textarea>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end p-4 bg-gray-50 border-t rounded-b-lg">
+                    <button id="btnCancelarEdit" type="button" class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                    <button id="btnSalvarEdit" type="submit" class="inline-flex w-full justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-secondary sm:ml-3 sm:w-auto sm:text-sm">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
     <script>
         // --- CONFIGURAÇÃO DO FIREBASE ---
         const firebaseConfig = {
@@ -238,10 +309,11 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         const registrosCollection = db.collection("registros");
+        const motoristasCollection = db.collection("motoristas");
         // --- FIM DA CONFIGURAÇÃO DO FIREBASE ---
 
 
-        // --- Lista Mestra (Mantida para auto-completar) ---
+        // --- Lista Mestra (Veículos) ---
         const VEICULOS_MASTER_LIST = [
             { placa: 'BOJ2C46', frota: '38221', tipo: 'Caminhão' }, { placa: 'BPJ0D32', frota: '100321', tipo: 'Carro' },
             { placa: 'BPR2J81', frota: '38120', tipo: 'Caminhão' }, { placa: 'BQB9541', frota: '17119', tipo: 'Ônibus' },
@@ -329,11 +401,10 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             
-            // --- Seletores ---
+            // --- Seletores do Log ---
             const form = document.getElementById('logForm');
             const inputFrota = document.getElementById('inputFrota'); 
             const inputPlaca = document.getElementById('inputPlaca');
-            // (NOVO) Seletor do Motorista
             const inputMotorista = document.getElementById('inputMotorista');
             const inputTipo = document.getElementById('inputTipo');
             const inputData = document.getElementById('inputData'); 
@@ -342,16 +413,66 @@
             const notification = document.getElementById('notification');
             const noResultsRow = document.getElementById('no-results-row');
             let notificationTimer;
+            const motoristaDataList = document.getElementById('motoristaList'); // Datalist do Log
 
-            // --- Seletores do Modal ---
+            // --- Seletores do Modal de Exclusão ---
             const modal = document.getElementById('confirmacaoModal');
             const modalOverlay = document.getElementById('modalOverlay');
             const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
             const btnCancelarExclusao = document.getElementById('btnCancelarExclusao');
+            const modalTitle = document.getElementById('modal-title');
             
             let docIdParaExcluir = null;
 
-            // --- Funções para controlar o Modal ---
+            // --- Seletores do Modal de Edição ---
+            const editModal = document.getElementById('editModal');
+            const editModalOverlay = document.getElementById('editModalOverlay');
+            const closeEditModal = document.getElementById('closeEditModal');
+            const btnCancelarEdit = document.getElementById('btnCancelarEdit');
+            const editForm = document.getElementById('editForm');
+            let flatpickrEditInstance = null;
+
+            // --- Seletores do formulário de Motoristas ---
+            const motoristaForm = document.getElementById('motoristaForm');
+            const inputNomeMotorista = document.getElementById('inputNomeMotorista');
+            const inputCracha = document.getElementById('inputCracha');
+            const motoristasTableBody = document.getElementById('motoristasTableBody');
+
+            // --- (NOVO) LÓGICA DAS ABAS ---
+            const navLinks = document.querySelectorAll('.nav-link');
+            const tabPanels = document.querySelectorAll('.tab-panel');
+
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const tabId = link.getAttribute('data-tab');
+
+                    // Esconde todos os painéis
+                    tabPanels.forEach(panel => {
+                        panel.classList.add('hidden');
+                    });
+                    
+                    // Remove a classe ativa de todos os links
+                    navLinks.forEach(navLink => {
+                        navLink.classList.remove('nav-link-active');
+                    });
+
+                    // Mostra o painel clicado
+                    document.getElementById(`tab-panel-${tabId}`).classList.remove('hidden');
+                    
+                    // Adiciona a classe ativa ao link clicado (e seu "irmão", se for o caso)
+                    // Isso faz "Dashboard/Log" ficarem ativos juntos
+                    document.querySelectorAll(`.nav-link[data-tab="${tabId}"]`).forEach(activeLink => {
+                        activeLink.classList.add('nav-link-active');
+                    });
+                    
+                    // Rola para o topo da página
+                    window.scrollTo(0, 0);
+                });
+            });
+
+
+            // --- Funções para controlar o Modal de EXCLUSÃO ---
             function showModal() {
                 modal.classList.remove('hidden', 'opacity-0', 'invisible');
                 modal.classList.add('opacity-100', 'visible');
@@ -362,18 +483,23 @@
                 setTimeout(() => {
                     modal.classList.add('hidden');
                     docIdParaExcluir = null; 
+                    modalTitle.textContent = "Excluir Registro";
                 }, 300);
             }
 
-            // --- Event Listeners do Modal ---
+            // --- Event Listeners do Modal de EXCLUSÃO ---
             btnConfirmarExclusao.addEventListener('click', () => {
-                if (docIdParaExcluir) {
-                    registrosCollection.doc(docIdParaExcluir).delete()
+                if (docIdParaExcluir && docIdParaExcluir.id) {
+                    let colecao = (docIdParaExcluir.collection === 'motoristas') 
+                                  ? motoristasCollection 
+                                  : registrosCollection;
+
+                    colecao.doc(docIdParaExcluir.id).delete()
                         .then(() => {
                             showNotification('Registro excluído.', 'success');
                         })
                         .catch((error) => {
-                            console.error("Erro ao excluir registro: ", error);
+                            console.error("Erro ao excluir: ", error);
                             showNotification('Erro ao excluir registro.', 'error');
                         });
                 }
@@ -382,8 +508,25 @@
             btnCancelarExclusao.addEventListener('click', hideModal);
             modalOverlay.addEventListener('click', hideModal);
 
+            // --- Funções para controlar o Modal de EDIÇÃO ---
+            function showEditModal() {
+                editModal.classList.remove('hidden', 'opacity-0', 'invisible');
+                editModal.classList.add('opacity-100', 'visible');
+            }
+            function hideEditModal() {
+                editModal.classList.remove('opacity-100', 'visible');
+                editModal.classList.add('opacity-0', 'invisible');
+                setTimeout(() => {
+                    editModal.classList.add('hidden');
+                }, 300);
+            }
 
-            // --- INICIALIZA O FLATPICKR (CALENDÁRIO) ---
+            // Event Listeners para fechar o Modal de Edição
+            editModalOverlay.addEventListener('click', hideEditModal);
+            closeEditModal.addEventListener('click', hideEditModal);
+            btnCancelarEdit.addEventListener('click', hideEditModal);
+
+            // --- INICIALIZA O FLATPICKR ---
             flatpickr(inputData, {
                 enableTime: true,
                 dateFormat: "d/m/Y H:i",
@@ -392,9 +535,18 @@
                 defaultDate: new Date()
             });
 
+            // Inicializa o Flatpickr para o formulário de EDIÇÃO
+            flatpickrEditInstance = flatpickr(document.getElementById('editData'), {
+                enableTime: true,
+                dateFormat: "d/m/Y H:i",
+                time_24hr: true,
+                locale: "pt"
+            });
+
             // --- Funções de inicialização ---
             popularFrotaDataList();
             carregarDadosSalvos();
+            carregarMotoristas(); 
 
             
             // --- LÓGICA DE AUTO-PREENCHIMENTO (Sem alteração) ---
@@ -429,14 +581,12 @@
             });
 
 
-            // --- Evento de 'Submit' (MODIFICADO PARA INCLUIR MOTORISTA) ---
+            // --- Evento de 'Submit' do LOG ---
             form.addEventListener('submit', (evento) => {
                 evento.preventDefault(); 
                 
-                // 1. Pega os dados do formulário
                 const frota = inputFrota.value; 
                 const placa = inputPlaca.value;
-                // (NOVO) Pega o motorista
                 const motorista = inputMotorista.value;
                 const tipo = inputTipo.value;
                 const motivo = document.getElementById('inputMotivo').value;
@@ -445,7 +595,6 @@
                 const flatpickrInstance = inputData._flatpickr;
                 const selectedDate = flatpickrInstance.selectedDates[0];
 
-                // 2. Validação
                 if (!tipo) {
                     showNotification('Frota ou Placa inválida. Verifique os dados.', 'error');
                     return;
@@ -454,24 +603,21 @@
                     showNotification('Por favor, preencha a Data e o Horário.', 'error');
                     return;
                 }
-                // (NOVO) Validação do motorista
                 if (!motorista) {
                     showNotification('Por favor, preencha o nome do motorista.', 'error');
                     return;
                 }
 
-                // 3. Cria um objeto de dados para o Firebase
                 const novoRegistro = {
                     frota: frota,
                     placa: placa,
-                    motorista: motorista, // (NOVO) Adiciona motorista ao objeto
+                    motorista: motorista,
                     tipo: tipo,
                     motivo: motivo,
                     data: dataFormatada,
                     timestamp: selectedDate ? firebase.firestore.Timestamp.fromDate(selectedDate) : firebase.firestore.FieldValue.serverTimestamp() 
                 };
 
-                // 4. Salva no Firebase
                 registrosCollection.add(novoRegistro)
                     .then(() => {
                         form.reset();
@@ -487,7 +633,65 @@
                     });
             });
 
-            // --- Popula o <datalist> (Sem alteração) ---
+            // --- Evento de 'Submit' do MOTORISTA ---
+            motoristaForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const nome = inputNomeMotorista.value;
+                const cracha = inputCracha.value;
+
+                if (!nome || !cracha) {
+                    showNotification('Preencha todos os campos.', 'error');
+                    return;
+                }
+
+                const novoMotorista = {
+                    nome: nome,
+                    cracha: cracha,
+                    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                motoristasCollection.add(novoMotorista)
+                    .then(() => {
+                        showNotification('Motorista salvo com sucesso!', 'success');
+                        motoristaForm.reset();
+                    })
+                    .catch(err => {
+                        console.error("Erro ao salvar motorista: ", err);
+                        showNotification('Erro ao salvar motorista.', 'error');
+                    });
+            });
+
+            // --- Evento de 'Submit' da EDIÇÃO do LOG ---
+            editForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+
+                const docId = document.getElementById('editDocId').value;
+                const novaFrota = document.getElementById('editFrota').value;
+                const novoMotivo = document.getElementById('editMotivo').value;
+                const novaData = document.getElementById('editData').value;
+                
+                const selectedDate = flatpickrEditInstance.selectedDates[0];
+                
+                const dadosAtualizados = {
+                    frota: novaFrota,
+                    motivo: novoMotivo,
+                    data: novaData,
+                    timestamp: firebase.firestore.Timestamp.fromDate(selectedDate),
+                    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                registrosCollection.doc(docId).update(dadosAtualizados)
+                    .then(() => {
+                        showNotification('Registro atualizado com sucesso!', 'success');
+                        hideEditModal();
+                    })
+                    .catch(err => {
+                        console.error("Erro ao atualizar: ", err);
+                        showNotification('Erro ao atualizar registro.', 'error');
+                    });
+            });
+
+            // --- Popula o <datalist> (Frota) ---
             function popularFrotaDataList() {
                 const frotaList = document.getElementById('frotaList');
                 const frotasOrdenadas = [...VEICULOS_MASTER_LIST].sort((a, b) => 
@@ -500,7 +704,7 @@
                 });
             }
 
-            // --- Filtrar a Tabela (Sem alteração, já funciona) ---
+            // --- Filtrar a Tabela (LOG) ---
             function filtrarTabela() {
                 const termoPesquisa = searchInput.value.toLowerCase();
                 const linhas = tableBody.getElementsByTagName('tr');
@@ -531,7 +735,7 @@
             searchInput.addEventListener('keyup', filtrarTabela);
 
 
-            // --- Adicionar Linha (MODIFICADO PARA INCLUIR MOTORISTA) ---
+            // --- Adicionar Linha do LOG (com botão Editar) ---
             function adicionarLinhaNaTabela(docId, frota, placa, motorista, tipo, motivo, data) {
                 const novaLinha = tableBody.insertRow(); 
                 novaLinha.className = "border-b hover:bg-gray-50";
@@ -542,19 +746,15 @@
                 novaLinha.insertCell(1).className = "px-4 py-3";
                 novaLinha.cells[1].textContent = placa;
                 
-                // (NOVO) Célula 2: Motorista
                 novaLinha.insertCell(2).className = "px-4 py-3";
                 novaLinha.cells[2].textContent = motorista;
 
-                // Célula 3: Tipo (era 2)
                 novaLinha.insertCell(3).className = "px-4 py-3";
                 novaLinha.cells[3].textContent = tipo;
                 
-                // Célula 4: Motivo (era 3)
                 novaLinha.insertCell(4).className = "px-4 py-3";
                 novaLinha.cells[4].textContent = motivo;
                 
-                // Célula 5: Data (era 4)
                 const cellData = novaLinha.insertCell(5);
                 cellData.className = "px-4 py-3";
                 const dateSpan = document.createElement('span');
@@ -562,24 +762,68 @@
                 dateSpan.textContent = data;
                 cellData.appendChild(dateSpan); 
                 
-                // Célula 6: Ações (era 5)
                 const cellAcoes = novaLinha.insertCell(6);
+                cellAcoes.className = "px-4 py-3"; 
+
+                const btnEditar = document.createElement('button');
+                btnEditar.className = 'text-blue-600 hover:text-blue-800';
+                btnEditar.title = 'Editar registro';
+                btnEditar.innerHTML = '<i class="fas fa-edit"></i>'; 
+                btnEditar.addEventListener('click', () => {
+                    abrirModalEdicao(docId, frota, motivo, data);
+                });
+                
+                const btnExcluir = document.createElement('button');
+                btnExcluir.className = 'text-red-600 hover:text-red-800 ml-2';
+                btnExcluir.title = 'Excluir registro';
+                btnExcluir.innerHTML = '<i class="fas fa-trash"></i>'; 
+                btnExcluir.addEventListener('click', () => {
+                    docIdParaExcluir = { id: docId, collection: 'registros' };
+                    modalTitle.textContent = "Excluir Registro";
+                    showModal();
+                });
+
+                cellAcoes.appendChild(btnEditar);
+                cellAcoes.appendChild(btnExcluir);
+            }
+
+            // --- (NOVO) Função para abrir o modal de EDIÇÃO ---
+            function abrirModalEdicao(docId, frota, motivo, data) {
+                document.getElementById('editDocId').value = docId;
+                document.getElementById('editFrota').value = frota;
+                document.getElementById('editMotivo').value = motivo;
+                flatpickrEditInstance.setDate(data, true, "d/m/Y H:i");
+                showEditModal();
+            }
+
+            // --- (NOVO) Função para adicionar linha na tabela de MOTORISTAS ---
+            function adicionarLinhaMotoristaNaTabela(docId, nome, cracha) {
+                const novaLinha = motoristasTableBody.insertRow();
+                novaLinha.className = "border-b hover:bg-gray-50";
+                
+                novaLinha.insertCell(0).className = "px-4 py-3";
+                novaLinha.cells[0].textContent = nome;
+                
+                novaLinha.insertCell(1).className = "px-4 py-3";
+                novaLinha.cells[1].textContent = cracha;
+                
+                const cellAcoes = novaLinha.insertCell(2);
                 cellAcoes.className = "px-4 py-3"; 
                 
                 const btnExcluir = document.createElement('button');
                 btnExcluir.className = 'text-red-600 hover:text-red-800'; 
-                btnExcluir.title = 'Excluir registro';
+                btnExcluir.title = 'Excluir motorista';
                 btnExcluir.innerHTML = '<i class="fas fa-trash"></i>'; 
                 
                 btnExcluir.addEventListener('click', () => {
-                    docIdParaExcluir = docId;
+                    docIdParaExcluir = { id: docId, collection: 'motoristas' };
+                    modalTitle.textContent = "Excluir Motorista";
                     showModal();
                 });
                 cellAcoes.appendChild(btnExcluir);
             }
 
-
-            // --- Carregar dados (MODIFICADO PARA INCLUIR MOTORISTA) ---
+            // --- Carregar dados do LOG ---
             function carregarDadosSalvos() {
                 registrosCollection.orderBy("timestamp", "desc")
                     .onSnapshot((querySnapshot) => {
@@ -592,24 +836,21 @@
                         let foraOperacaoCount = 0;
 
                         if (querySnapshot.empty) {
-                            checkTableEmpty();
+                            checkTableEmpty('log');
                             return;
                         }
 
                         querySnapshot.forEach((doc) => {
                             const registro = doc.data();
-                            
-                            // (MUDANÇA) Passando o 'registro.motorista' para a função
                             adicionarLinhaNaTabela(
                                 doc.id,
                                 registro.frota,
                                 registro.placa,
-                                registro.motorista || '', // Usa string vazia se for antigo
+                                registro.motorista || '',
                                 registro.tipo,
                                 registro.motivo,
                                 registro.data
                             );
-
                             if (registro.motivo.toLowerCase().includes('manutenção')) {
                                 manutencaoCount++;
                             }
@@ -620,16 +861,45 @@
 
                         document.getElementById('stats-manutencao').textContent = manutencaoCount;
                         document.getElementById('stats-fora-operacao').textContent = foraOperacaoCount;
-
-                        checkTableEmpty();
+                        checkTableEmpty('log');
                         filtrarTabela();
                     }, (error) => {
-                        console.error("Erro ao carregar dados: ", error);
-                        showNotification('Erro ao conectar com o banco de dados.', 'error');
+                        console.error("Erro ao carregar dados do log: ", error);
+                        showNotification('Erro ao conectar com o banco de dados de log.', 'error');
                     });
             }
+
+            // --- (MODIFICADO) Carregar Motoristas (e popular datalist) ---
+            function carregarMotoristas() {
+                motoristasCollection.orderBy("nome", "asc").onSnapshot((querySnapshot) => {
+                    const noMotoristasRow = document.getElementById('no-motoristas-row');
+                    motoristasTableBody.innerHTML = "";
+                    motoristasTableBody.appendChild(noMotoristasRow);
+                    motoristaDataList.innerHTML = ""; // Limpa o datalist
+
+                    if (querySnapshot.empty) {
+                        checkTableEmpty('motoristas');
+                        return;
+                    }
+
+                    querySnapshot.forEach(doc => {
+                        const motorista = doc.data();
+                        adicionarLinhaMotoristaNaTabela(doc.id, motorista.nome, motorista.cracha);
+
+                        // (MODIFICADO) Popula o <datalist> com "Nome - Crachá"
+                        const option = document.createElement('option');
+                        option.value = `${motorista.nome} - ${motorista.cracha}`;
+                        motoristaDataList.appendChild(option);
+                    });
+
+                    checkTableEmpty('motoristas');
+                }, (error) => {
+                    console.error("Erro ao carregar motoristas: ", error);
+                    showNotification('Erro ao carregar lista de motoristas.', 'error');
+                });
+            }
             
-            // --- Mostrar notificação (Sem alteração) ---
+            // --- Mostrar notificação ---
             function showNotification(message, type = 'success') {
                 clearTimeout(notificationTimer);
                 notification.textContent = message;
@@ -652,18 +922,20 @@
                 }, 3000);
             }
 
-            // --- Checar se tabela está vazia (Sem alteração) ---
-            function checkTableEmpty() {
-                const dataRows = Array.from(tableBody.getElementsByTagName('tr')).filter(row => row.id !== 'no-results-row').length;
-                if (dataRows === 0) {
-                    noResultsRow.style.display = '';
-                    noResultsRow.querySelector('td').textContent = 'Nenhum registro encontrado.';
-                } else {
-                    noResultsRow.style.display = 'none';
+            // --- Checar se tabela está vazia ---
+            function checkTableEmpty(tipo) {
+                if (tipo === 'log') {
+                    const dataRows = Array.from(tableBody.getElementsByTagName('tr')).filter(row => row.id !== 'no-results-row').length;
+                    noResultsRow.style.display = dataRows === 0 ? '' : 'none';
+                } else if (tipo === 'motoristas') {
+                    const noMotoristasRow = document.getElementById('no-motoristas-row');
+                    const dataRows = Array.from(motoristasTableBody.getElementsByTagName('tr')).filter(row => row.id !== 'no-motoristas-row').length;
+                    noMotoristasRow.style.display = dataRows === 0 ? '' : 'none';
                 }
             }
 
-            // --- Navegação Suave (Sem alteração) ---
+            // --- Navegação Suave (desativada em favor das abas) ---
+            /*
             document.querySelectorAll("a[href^='#']").forEach(link => {
                 link.addEventListener("click", function(e) {
                     e.preventDefault();
@@ -674,6 +946,7 @@
                     }
                 });
             });
+            */
         });
     </script>
 </body>
