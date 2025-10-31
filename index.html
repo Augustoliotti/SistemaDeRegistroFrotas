@@ -5,6 +5,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Registro de Frotas (Firebase)</title>
+    <link rel="icon" type="image/png" href="https://usinapitangueiras.com.br/wp-content/uploads/2020/10/cropped-favicon-32x32.png">
     
     <script src="https://cdn.tailwindcss.com"></script>
     
@@ -31,7 +32,11 @@
                         secondary: "#3b82f6",
                         accent: "#f59e0b", // Laranja/Amarelo
                         dark: "#1f2937",
-                        danger: "#dc2626"
+                        danger: "#dc2626",
+                        status_green: "#10b981",
+                        status_yellow: "#f59e0b",
+                        status_red: "#dc2626",
+                        status_gray: "#6b7280"
                     }
                 }
             }
@@ -51,6 +56,12 @@
         .ts-control.focus {
             box-shadow: 0 0 0 2px #1e40af !important;
             border-color: transparent !important;
+        }
+        .status-dot {
+            width: 0.75rem;
+            height: 0.75rem;
+            border-radius: 9999px;
+            flex-shrink: 0;
         }
     </style>
 </head>
@@ -84,7 +95,7 @@
 
             <div id="tab-panel-log" class="tab-panel py-8">
                 <section id="dashboard">
-                    <h2 class="text-3xl font-bold text-dark mb-8">Dashboard da Frota</h2>
+                    <h2 class="text-3xl font-bold text-dark mb-8">Dashboard da Frota (Status em Tempo Real)</h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                          <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-primary">
                             <div class="flex items-center justify-between">
@@ -95,31 +106,31 @@
                                 <i class="fas fa-truck text-primary text-2xl"></i>
                             </div>
                         </div>
-                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-accent">
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-status_green">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-gray-600 text-sm">Em Operação</p>
                                     <p class="text-2xl font-bold text-dark" id="stats-operacao">0</p>
                                 </div>
-                                <i class="fas fa-check-circle text-accent text-2xl"></i>
+                                <i class="fas fa-check-circle text-status_green text-2xl"></i>
                             </div>
                         </div>
-                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-secondary">
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-status_yellow">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-gray-600 text-sm">Em Manutenção</p>
                                     <p class="text-2xl font-bold text-dark" id="stats-manutencao">0</p>
                                 </div>
-                                <i class="fas fa-tools text-secondary text-2xl"></i>
+                                <i class="fas fa-tools text-status_yellow text-2xl"></i>
                             </div>
                         </div>
-                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                        <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-status_red">
                             <div class="flex items-center justify-between">
                                 <div>
                                     <p class="text-gray-600 text-sm">Fora de Operação</p>
                                     <p class="text-2xl font-bold text-dark" id="stats-fora-operacao">0</p>
                                 </div>
-                                <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                                <i class="fas fa-exclamation-triangle text-status_red text-2xl"></i>
                             </div>
                         </div>
                     </div>
@@ -216,13 +227,21 @@
                             <label for="inputVeiculoPlaca" class="block text-sm font-medium text-gray-700 mb-2">Placa:</label>
                             <input type="text" id="inputVeiculoPlaca" placeholder="Ex: BOJ2C46" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
                         </div>
-                        <div class="md:col-span-3">
+                        <div class="md:col-span-2">
                             <label for="inputVeiculoTipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo:</label>
                             <input type="text" id="inputVeiculoTipo" placeholder="Ex: Caminhão" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
                         </div>
-                        <div class="md:col-span-3">
+                        <div class="md:col-span-2">
+                            <label for="inputVeiculoStatus" class="block text-sm font-medium text-gray-700 mb-2">Status:</label>
+                            <select id="inputVeiculoStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                                <option value="operacional">Operacional</option>
+                                <option value="manutencao">Manutenção</option>
+                                <option value="fora_operacao">Fora de Operação</option>
+                            </select>
+                        </div>
+                        <div class="md:col-span-2">
                             <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors font-medium w-full">
-                                <i class="fas fa-save mr-2"></i>Salvar Veículo
+                                <i class="fas fa-save mr-2"></i>Salvar
                             </button>
                         </div>
                     </form>
@@ -245,12 +264,13 @@
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Frota</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Placa</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Tipo</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="veiculosTableBody">
                                 <tr id="no-veiculos-row" class="border-b">
-                                    <td colspan="4" class="px-4 py-10 text-center text-gray-500 italic">
+                                    <td colspan="5" class="px-4 py-10 text-center text-gray-500 italic">
                                         Nenhum veículo cadastrado.
                                     </td>
                                 </tr>
@@ -270,9 +290,16 @@
                             <label for="inputCracha" class="block text-sm font-medium text-gray-700 mb-2">Nº do Crachá/Matrícula:</label>
                             <input type="text" id="inputCracha" placeholder="Ex: 12345" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
                         </div>
+                        <div class="md:col-span-2">
+                            <label for="inputMotoristaStatus" class="block text-sm font-medium text-gray-700 mb-2">Status:</label>
+                            <select id="inputMotoristaStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                                <option value="ativo">Ativo</option>
+                                <option value="inativo">Inativo</option>
+                            </select>
+                        </div>
                         <div class="md:col-span-3">
                             <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors font-medium w-full">
-                                <i class="fas fa-user-plus mr-2"></i>Salvar Motorista
+                                <i class="fas fa-user-plus mr-2"></i>Salvar
                             </button>
                         </div>
                     </form>
@@ -286,12 +313,13 @@
                                 <tr class="bg-gray-50 border-b">
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Nome</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Crachá/Matrícula</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Status</th>
                                     <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Ações</th>
                                 </tr>
                             </thead>
                             <tbody id="motoristasTableBody">
                                 <tr id="no-motoristas-row" class="border-b">
-                                    <td colspan="3" class="px-4 py-10 text-center text-gray-500 italic">
+                                    <td colspan="4" class="px-4 py-10 text-center text-gray-500 italic">
                                         Nenhum motorista cadastrado.
                                     </td>
                                 </tr>
@@ -375,6 +403,50 @@
         </div>
     </div>
 
+    <div id="editVeiculoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0 invisible transition-all duration-300 ease-in-out">
+        <div id="editVeiculoModalOverlay" class="absolute inset-0 bg-black/50 cursor-pointer"></div>
+        <div class="relative w-full max-w-lg bg-white rounded-lg shadow-xl">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 class="text-lg font-bold text-dark">Editar Veículo</h3>
+                <button id="closeEditVeiculoModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="editVeiculoForm">
+                <div class="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="hidden" id="editVeiculoDocId">
+                    <div>
+                        <label for="editVeiculoFrota" class="block text-sm font-medium text-gray-700 mb-2">Nº Frota:</label>
+                        <input type="text" id="editVeiculoFrota" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                    </div>
+                    <div>
+                        <label for="editVeiculoPlaca" class="block text-sm font-medium text-gray-700 mb-2">Placa:</label>
+                        <input type="text" id="editVeiculoPlaca" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                    </div>
+                    <div>
+                        <label for="editVeiculoTipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo:</label>
+                        <input type="text" id="editVeiculoTipo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                    </div>
+                    <div>
+                        <label for="editVeiculoStatus" class="block text-sm font-medium text-gray-700 mb-2">Status:</label>
+                        <select id="editVeiculoStatus" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                            <option value="operacional">Operacional</option>
+                            <option value="manutencao">Manutenção</option>
+                            <option value="fora_operacao">Fora de Operação</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="flex items-center justify-end p-4 bg-gray-50 border-t rounded-b-lg">
+                    <button id="btnCancelarEditVeiculo" type="button" class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 sm:mt-0 sm:w-auto sm:text-sm">
+                        Cancelar
+                    </button>
+                    <button id="btnSalvarEditVeiculo" type="submit" class="inline-flex w-full justify-center rounded-md border border-transparent bg-primary px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-secondary sm:ml-3 sm:w-auto sm:text-sm">
+                        Salvar Alterações
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script>
         // --- CONFIGURAÇÃO DO FIREBASE ---
@@ -437,6 +509,7 @@
             const inputVeiculoFrota = document.getElementById('inputVeiculoFrota');
             const inputVeiculoPlaca = document.getElementById('inputVeiculoPlaca');
             const inputVeiculoTipo = document.getElementById('inputVeiculoTipo');
+            const inputVeiculoStatus = document.getElementById('inputVeiculoStatus');
             const veiculosTableBody = document.getElementById('veiculosTableBody');
 
             // --- Seletores do Modal de Exclusão ---
@@ -447,21 +520,29 @@
             const modalTitle = document.getElementById('modal-title');
             let docIdParaExcluir = null;
 
-            // --- Seletores do Modal de Edição ---
+            // --- Seletores do Modal de Edição (Log) ---
             const editModal = document.getElementById('editModal');
             const editModalOverlay = document.getElementById('editModalOverlay');
             const closeEditModal = document.getElementById('closeEditModal');
             const btnCancelarEdit = document.getElementById('btnCancelarEdit');
             const editForm = document.getElementById('editForm');
             let flatpickrEditInstance = null;
+            
+            // --- (NOVO) Seletores do Modal de Edição (Veículo) ---
+            const editVeiculoModal = document.getElementById('editVeiculoModal');
+            const editVeiculoModalOverlay = document.getElementById('editVeiculoModalOverlay');
+            const closeEditVeiculoModal = document.getElementById('closeEditVeiculoModal');
+            const btnCancelarEditVeiculo = document.getElementById('btnCancelarEditVeiculo');
+            const editVeiculoForm = document.getElementById('editVeiculoForm');
 
             // --- Seletores do formulário de Motoristas ---
             const motoristaForm = document.getElementById('motoristaForm');
             const inputNomeMotorista = document.getElementById('inputNomeMotorista');
             const inputCracha = document.getElementById('inputCracha');
+            const inputMotoristaStatus = document.getElementById('inputMotoristaStatus');
             const motoristasTableBody = document.getElementById('motoristasTableBody');
             
-            // --- (NOVO) Seletor do Botão de Importação ---
+            // --- Seletor do Botão de Importação ---
             const btnImportarVeiculos = document.getElementById('btnImportarVeiculos');
 
             // --- Instâncias do TomSelect ---
@@ -522,7 +603,7 @@
             btnCancelarExclusao.addEventListener('click', hideModal);
             modalOverlay.addEventListener('click', hideModal);
 
-            // --- Funções para controlar o Modal de EDIÇÃO ---
+            // --- Funções para controlar o Modal de EDIÇÃO (Log) ---
             function showEditModal() {
                 editModal.classList.remove('hidden', 'opacity-0', 'invisible');
                 editModal.classList.add('opacity-100', 'visible');
@@ -536,6 +617,21 @@
             editModalOverlay.addEventListener('click', hideEditModal);
             closeEditModal.addEventListener('click', hideEditModal);
             btnCancelarEdit.addEventListener('click', hideEditModal);
+            
+            // --- (NOVO) Funções para controlar o Modal de EDIÇÃO (Veículo) ---
+            function showEditVeiculoModal() {
+                editVeiculoModal.classList.remove('hidden', 'opacity-0', 'invisible');
+                editVeiculoModal.classList.add('opacity-100', 'visible');
+            }
+            function hideEditVeiculoModal() {
+                editVeiculoModal.classList.remove('opacity-100', 'visible');
+                editVeiculoModal.classList.add('opacity-0', 'invisible');
+                setTimeout(() => editVeiculoModal.classList.add('hidden'), 300);
+            }
+
+            editVeiculoModalOverlay.addEventListener('click', hideEditVeiculoModal);
+            closeEditVeiculoModal.addEventListener('click', hideEditVeiculoModal);
+            btnCancelarEditVeiculo.addEventListener('click', hideEditVeiculoModal);
 
             // --- INICIALIZA O FLATPICKR ---
             flatpickr(inputData, {
@@ -631,11 +727,13 @@
                 const frota = inputVeiculoFrota.value;
                 const placa = inputVeiculoPlaca.value;
                 const tipo = inputVeiculoTipo.value;
+                const status = inputVeiculoStatus.value;
 
                 const novoVeiculo = {
                     frota: frota,
                     placa: placa,
                     tipo: tipo,
+                    status: status,
                     criadoEm: firebase.firestore.FieldValue.serverTimestamp()
                 };
 
@@ -650,7 +748,7 @@
                     });
             });
 
-            // --- (NOVO) Evento de 'Submit' da IMPORTAÇÃO ---
+            // --- Evento de 'Submit' da IMPORTAÇÃO ---
             btnImportarVeiculos.addEventListener('click', () => {
                 importarVeiculosAntigos();
             });
@@ -660,6 +758,7 @@
                 e.preventDefault();
                 const nome = inputNomeMotorista.value;
                 const cracha = inputCracha.value;
+                const status = inputMotoristaStatus.value;
 
                 if (!nome || !cracha) {
                     showNotification('Preencha todos os campos.', 'error');
@@ -668,6 +767,7 @@
                 const novoMotorista = {
                     nome: nome,
                     cracha: cracha,
+                    status: status,
                     criadoEm: firebase.firestore.FieldValue.serverTimestamp()
                 };
                 motoristasCollection.add(novoMotorista)
@@ -712,9 +812,29 @@
                         showNotification('Erro ao atualizar registro.', 'error');
                     });
             });
+            
+            // --- (NOVO) Evento de 'Submit' da EDIÇÃO do VEÍCULO ---
+            editVeiculoForm.addEventListener('submit', (e) => {
+                e.preventDefault();
 
-            // --- (REMOVIDO) popularFrotaDataList() ---
-            // A lógica foi movida para carregarVeiculos()
+                const docId = document.getElementById('editVeiculoDocId').value;
+                const dadosAtualizados = {
+                    frota: document.getElementById('editVeiculoFrota').value,
+                    placa: document.getElementById('editVeiculoPlaca').value,
+                    tipo: document.getElementById('editVeiculoTipo').value,
+                    status: document.getElementById('editVeiculoStatus').value,
+                };
+
+                veiculosCollection.doc(docId).update(dadosAtualizados)
+                    .then(() => {
+                        showNotification('Veículo atualizado com sucesso!', 'success');
+                        hideEditVeiculoModal();
+                    })
+                    .catch(err => {
+                        console.error("Erro ao atualizar veículo: ", err);
+                        showNotification('Erro ao atualizar veículo.', 'error');
+                    });
+            });
 
             // --- Filtrar a Tabela (LOG) ---
             function filtrarTabela() {
@@ -785,7 +905,7 @@
             }
 
             // --- Adicionar linha na tabela de VEÍCULOS ---
-            function adicionarLinhaVeiculoNaTabela(docId, frota, placa, tipo) {
+            function adicionarLinhaVeiculoNaTabela(docId, frota, placa, tipo, status) {
                 const novaLinha = veiculosTableBody.insertRow();
                 novaLinha.className = "border-b hover:bg-gray-50";
                 
@@ -795,24 +915,59 @@
                 novaLinha.cells[1].textContent = placa;
                 novaLinha.insertCell(2).className = "px-4 py-3";
                 novaLinha.cells[2].textContent = tipo;
+
+                const cellStatus = novaLinha.insertCell(3);
+                cellStatus.className = "px-4 py-3";
+                const statusSpan = document.createElement('span');
+                statusSpan.className = "flex items-center gap-2 text-sm";
+                const statusDot = document.createElement('span');
+                statusDot.className = "status-dot";
+                let statusText = "Desconhecido";
                 
-                const cellAcoes = novaLinha.insertCell(3);
+                if (status === 'operacional') {
+                    statusDot.classList.add('bg-status_green');
+                    statusText = 'Operacional';
+                } else if (status === 'manutencao') {
+                    statusDot.classList.add('bg-status_yellow');
+                    statusText = 'Manutenção';
+                } else if (status === 'fora_operacao') {
+                    statusDot.classList.add('bg-status_red');
+                    statusText = 'Fora de Operação';
+                } else {
+                    statusDot.classList.add('bg-status_gray');
+                    statusText = 'Indefinido';
+                }
+                statusSpan.appendChild(statusDot);
+                statusSpan.appendChild(document.createTextNode(statusText));
+                cellStatus.appendChild(statusSpan);
+                
+                const cellAcoes = novaLinha.insertCell(4);
                 cellAcoes.className = "px-4 py-3"; 
                 
+                // (NOVO) Botão de Editar Veículo
+                const btnEditar = document.createElement('button');
+                btnEditar.className = 'text-blue-600 hover:text-blue-800';
+                btnEditar.title = 'Editar veículo';
+                btnEditar.innerHTML = '<i class="fas fa-edit"></i>'; 
+                btnEditar.addEventListener('click', () => {
+                    abrirModalEdicaoVeiculo(docId, frota, placa, tipo, status);
+                });
+
                 const btnExcluir = document.createElement('button');
-                btnExcluir.className = 'text-red-600 hover:text-red-800'; 
+                btnExcluir.className = 'text-red-600 hover:text-red-800 ml-2'; 
                 btnExcluir.title = 'Excluir veículo';
                 btnExcluir.innerHTML = '<i class="fas fa-trash"></i>'; 
-                
                 btnExcluir.addEventListener('click', () => {
                     docIdParaExcluir = { id: docId, collection: 'veiculos' };
                     modalTitle.textContent = "Excluir Veículo";
                     showModal();
                 });
+                
+                cellAcoes.appendChild(btnEditar);
                 cellAcoes.appendChild(btnExcluir);
             }
 
-            // --- Abrir modal de EDIÇÃO ---
+            // --- Abrir modal de EDIÇÃO (Log) ---
             function abrirModalEdicao(docId, mesDocId, frota, motivo, data) {
                 document.getElementById('editDocId').value = docId;
                 document.getElementById('editMesId').value = mesDocId; 
@@ -824,9 +979,19 @@
                 flatpickrEditInstance.setDate(data, true, "d/m/Y H:i");
                 showEditModal();
             }
+            
+            // --- (NOVO) Abrir modal de EDIÇÃO (Veículo) ---
+            function abrirModalEdicaoVeiculo(docId, frota, placa, tipo, status) {
+                document.getElementById('editVeiculoDocId').value = docId;
+                document.getElementById('editVeiculoFrota').value = frota;
+                document.getElementById('editVeiculoPlaca').value = placa;
+                document.getElementById('editVeiculoTipo').value = tipo;
+                document.getElementById('editVeiculoStatus').value = status || 'operacional';
+                showEditVeiculoModal();
+            }
 
             // --- Adicionar linha na tabela de MOTORISTAS ---
-            function adicionarLinhaMotoristaNaTabela(docId, nome, cracha) {
+            function adicionarLinhaMotoristaNaTabela(docId, nome, cracha, status) {
                 const novaLinha = motoristasTableBody.insertRow();
                 novaLinha.className = "border-b hover:bg-gray-50";
                 
@@ -834,8 +999,26 @@
                 novaLinha.cells[0].textContent = nome;
                 novaLinha.insertCell(1).className = "px-4 py-3";
                 novaLinha.cells[1].textContent = cracha;
+
+                const cellStatus = novaLinha.insertCell(2);
+                cellStatus.className = "px-4 py-3";
+                const statusSpan = document.createElement('span');
+                statusSpan.className = "flex items-center gap-2 text-sm";
+                const statusDot = document.createElement('span');
+                statusDot.className = "status-dot";
+
+                if (status === 'ativo') {
+                    statusDot.classList.add('bg-status_green');
+                    statusSpan.appendChild(statusDot);
+                    statusSpan.appendChild(document.createTextNode('Ativo'));
+                } else {
+                    statusDot.classList.add('bg-status_gray');
+                    statusSpan.appendChild(statusDot);
+                    statusSpan.appendChild(document.createTextNode('Inativo'));
+                }
+                cellStatus.appendChild(statusSpan);
                 
-                const cellAcoes = novaLinha.insertCell(2);
+                const cellAcoes = novaLinha.insertCell(3);
                 cellAcoes.className = "px-4 py-3"; 
                 
                 const btnExcluir = document.createElement('button');
@@ -866,13 +1049,9 @@
                         tableBody.innerHTML = "";
                         tableBody.appendChild(noResultsNode); 
 
-                        let manutencaoCount = 0;
-                        let foraOperacaoCount = 0;
                         let rowCount = 0;
-
                         if (querySnapshot.empty) {
                             checkTableEmpty('log', 0);
-                            atualizarStats(0, 0);
                             return;
                         }
                         querySnapshot.forEach((doc) => {
@@ -884,10 +1063,7 @@
                                 registro.motorista || '', registro.tipo,
                                 registro.motivo, registro.data
                             );
-                            if (registro.motivo.toLowerCase().includes('manutenção')) manutencaoCount++;
-                            if (registro.motivo.toLowerCase().includes('fora de operação')) foraOperacaoCount++;
                         });
-                        atualizarStats(manutencaoCount, foraOperacaoCount);
                         checkTableEmpty('log', rowCount);
                         filtrarTabela();
                     }, (error) => {
@@ -895,12 +1071,12 @@
                         tableBody.innerHTML = "";
                         tableBody.appendChild(noResultsNode); 
                         checkTableEmpty('log', 0);
-                        atualizarStats(0, 0);
                     });
             }
 
             // --- Atualizar Stats do Dashboard ---
-            function atualizarStats(manutencao, foraOperacao) {
+            function atualizarStats(operacional, manutencao, foraOperacao) {
+                document.getElementById('stats-operacao').textContent = operacional;
                 document.getElementById('stats-manutencao').textContent = manutencao;
                 document.getElementById('stats-fora-operacao').textContent = foraOperacao;
             }
@@ -936,20 +1112,20 @@
                     tomSelectEditFrota.clearOptions();
                     
                     let totalVeiculos = 0;
+                    let op = 0, man = 0, fora = 0; 
 
                     if (querySnapshot.empty) {
                         checkTableEmpty('veiculos');
-                        // Mostra o card de importação se a tabela estiver vazia
                         document.getElementById('importCard').style.display = 'block';
                     } else {
-                        // Esconde o card de importação se houver dados
                         document.getElementById('importCard').style.display = 'none';
                     }
 
                     querySnapshot.forEach(doc => {
                         totalVeiculos++;
                         const veiculo = doc.data();
-                        adicionarLinhaVeiculoNaTabela(doc.id, veiculo.frota, veiculo.placa, veiculo.tipo);
+                        
+                        adicionarLinhaVeiculoNaTabela(doc.id, veiculo.frota, veiculo.placa, veiculo.tipo, veiculo.status);
 
                         const optionData = {
                             value: doc.id,
@@ -959,10 +1135,15 @@
                         };
                         tomSelectFrota.addOption(optionData);
                         tomSelectEditFrota.addOption(optionData);
+
+                        if (veiculo.status === 'operacional') op++;
+                        else if (veiculo.status === 'manutencao') man++;
+                        else if (veiculo.status === 'fora_operacao') fora++;
                     });
+                    
                     checkTableEmpty('veiculos');
                     document.getElementById('stats-total-veiculos').textContent = totalVeiculos;
-                    document.getElementById('stats-operacao').textContent = totalVeiculos; // Simples
+                    atualizarStats(op, man, fora);
                 }, (error) => {
                     console.error("Erro ao carregar veículos: ", error);
                     showNotification('Erro ao carregar lista de veículos.', 'error');
@@ -984,12 +1165,14 @@
                     }
                     querySnapshot.forEach(doc => {
                         const motorista = doc.data();
-                        adicionarLinhaMotoristaNaTabela(doc.id, motorista.nome, motorista.cracha);
+                        adicionarLinhaMotoristaNaTabela(doc.id, motorista.nome, motorista.cracha, motorista.status || 'ativo');
 
-                        tomSelectMotorista.addOption({
-                            value: doc.id,
-                            text: `${motorista.nome} - ${motorista.cracha}`
-                        });
+                        if (motorista.status === 'ativo') {
+                            tomSelectMotorista.addOption({
+                                value: doc.id,
+                                text: `${motorista.nome} - ${motorista.cracha}`
+                            });
+                        }
                     });
                     checkTableEmpty('motoristas');
                 }, (error) => {
@@ -1042,7 +1225,7 @@
                 }
             }
 
-            // --- (NOVO) FUNÇÃO DE IMPORTAÇÃO DE VEÍCULOS ---
+            // --- FUNÇÃO DE IMPORTAÇÃO DE VEÍCULOS ---
             async function importarVeiculosAntigos() {
                 const VEICULOS_PARA_IMPORTAR = [
                     { placa: 'BOJ2C46', frota: '38221', tipo: 'Caminhão' }, { placa: 'BPJ0D32', frota: '100321', tipo: 'Carro' },
@@ -1099,7 +1282,7 @@
                     { placa: 'TBA9E81', frota: '31625', tipo: 'Caminhão' }, { placa: 'TBA9E83', frota: '311125', tipo: 'Caminhão' },
                     { placa: 'TBA9E84', frota: '312025', tipo: 'Caminhão' }, { placa: 'TBB0F44', frota: '311025', tipo: 'Caminhão' },
                     { placa: 'TBB0F45', frota: '311325', tipo: 'Caminhão' }, { placa: 'TBB0F46', frota: '31925', tipo: 'Caminhão' },
-                    { placa: 'TBB0F47', frota: '311525', tipo: 'Caminhão' }, { placa: 'TBB0F48', frota: '31725', tipo: 'Caminhão' },
+                    { placa: 'TBB0F47', frota: '311525', tipo: 'Caminhão' }, { placa: 'TBB0F48', frota: '31725', tipo:Mãe,        },
                     { placa: 'TBB0F49', frota: '311725', tipo: 'Caminhão' }, { placa: 'TBB0F52', frota: '311825', tipo: 'Caminhão' },
                     { placa: 'TBB0F53', frota: '311925', tipo: 'Caminhão' }, { placa: 'TBB0F54', frota: '31125', tipo: 'Caminhão' },
                     { placa: 'TBB0F56', frota: '31325', tipo: 'Caminhão' }, { placa: 'TBB0F57', frota: '311425', tipo: 'Caminhão' },
@@ -1146,6 +1329,7 @@
                         frota: veiculo.frota,
                         placa: veiculo.placa,
                         tipo: veiculo.tipo,
+                        status: 'operacional', // Define um status padrão
                         criadoEm: firebase.firestore.FieldValue.serverTimestamp()
                     };
                     const docRef = veiculosCollection.doc();
@@ -1165,6 +1349,7 @@
                     btnImportarVeiculos.textContent = 'Tentar Importar Novamente';
                 }
             }
+
         });
     </script>
 </body>
