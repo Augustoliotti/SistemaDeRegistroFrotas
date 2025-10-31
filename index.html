@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <base target="_self">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistema de Registro de Frotas (Firebase)</title>
+    <meta name="description" content="Sistema completo para gerenciamento e registro de frotas de veículos">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script src="https://npmcdn.com/flatpickr/dist/l10n/pt.js"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-firestore-compat.js"></script>
+
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#1e40af", // Azul
+                        secondary: "#3b82f6",
+                        accent: "#f59e0b",
+                        dark: "#1f2937",
+                        danger: "#dc2626" // Cor vermelha para perigo
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <header class="bg-white shadow-lg sticky top-0 z-50">
+        <nav class="container mx-auto px-4 py-4">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-truck-moving text-primary text-2xl"></i>
+                    <h1 class="text-xl font-bold text-dark">FleetManager</h1>
+                </div>
+                
+                <div class="hidden md:flex space-x-6">
+                    <a href="#dashboard" class="text-dark hover:text-primary transition-colors font-medium">Dashboard</a>
+                    <a href="#log" class="text-dark hover:text-primary transition-colors font-medium">Log de Eventos</a>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <div class="w-8 h-8 bg-primary rounded-full flex items-center justify-center text-white">
+                        <i class="fas fa-user"></i>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="dashboard" class="py-8">
+            <div class="container mx-auto px-4">
+                <h2 class="text-3xl font-bold text-dark mb-8">Dashboard da Frota</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-primary">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Total de Veículos</p>
+                                <p class="text-2xl font-bold text-dark">161</p>
+                            </div>
+                            <i class="fas fa-truck text-primary text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-accent">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Em Operação</p>
+                                <p class="text-2xl font-bold text-dark">161</p>
+                            </div>
+                            <i class="fas fa-check-circle text-accent text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-secondary">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Em Manutenção</p>
+                                <p class="text-2xl font-bold text-dark" id="stats-manutencao">0</p>
+                            </div>
+                            <i class="fas fa-tools text-secondary text-2xl"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl shadow-md p-6 border-l-4 border-red-500">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-gray-600 text-sm">Fora de Operação</p>
+                                <p class="text-2xl font-bold text-dark" id="stats-fora-operacao">0</p>
+                            </div>
+                            <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+                    <h3 class="text-xl font-bold text-dark mb-6">Registrar Novo Acontecimendo</h3>
+                    
+                    <form id="logForm" class="grid grid-cols-1 md:grid-cols-12 gap-6 items-end">
+                        
+                        <div class="md:col-span-2">
+                            <label for="inputFrota" class="block text-sm font-medium text-gray-700 mb-2">Frota (Pesquisável):</label>
+                            <input type="text" id="inputFrota" list="frotaList" placeholder="Digite ou selecione" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                            <datalist id="frotaList">
+                                </datalist>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="inputPlaca" class="block text-sm font-medium text-gray-700 mb-2">Placa:</label>
+                            <input type="text" id="inputPlaca" placeholder="Digite a Placa" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="inputMotorista" class="block text-sm font-medium text-gray-700 mb-2">Motorista:</label>
+                            <input type="text" id="inputMotorista" placeholder="Nome do Motorista" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                        </div>
+                        
+                        <div class="md:col-span-2">
+                            <label for="inputTipo" class="block text-sm font-medium text-gray-700 mb-2">Tipo:</label>
+                            <input type="text" id="inputTipo" placeholder="Automático" class="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed" readonly required>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="inputMotivo" class="block text-sm font-medium text-gray-700 mb-2">Motivo:</label>
+                            <input type="text" id="inputMotivo" placeholder="Ex: Manutenção" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" required>
+                        </div>
+
+                        <div class="md:col-span-2">
+                            <label for="inputData" class="block text-sm font-medium text-gray-700 mb-2">Data e Horário:</label>
+                            <input type="text" id="inputData" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent" placeholder="Selecione a data" required>
+                        </div>
+                        
+                        <div class="md:col-span-12">
+                            <button type="submit" class="bg-primary text-white px-6 py-3 rounded-lg hover:bg-secondary transition-colors font-medium">
+                                <i class="fas fa-plus mr-2"></i>Adicionar Registro
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <div id="log" class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
+                        <h3 class="text-xl font-bold text-dark">Log de Acontecimentos</h3>
+                        
+                        <div class="w-full md:w-auto">
+                            <input type="text" id="searchInput" placeholder="Pesquisar por motorista, frota, placa, etc..." class="w-full md:w-80 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent">
+                        </div>
+                    </div>
+                    
+                    <div class="overflow-x-auto">
+                        <table class="w-full" id="logTable">
+                            <thead>
+                                <tr class="bg-gray-50 border-b">
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Frota</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Placa</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Motorista</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Tipo</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Motivo</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Data e Horário</th>
+                                    <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody">
+                                <tr id="no-results-row" class="border-b">
+                                    <td colspan="7" class="px-4 py-10 text-center text-gray-500 italic">
+                                        Nenhum registro encontrado.
+                                    </td>
+                                </tr>
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="bg-dark text-white py-8 mt-12">
+        <div class="container mx-auto px-4">
+            </div>
+    </footer>
+
+    <div id="notification" class="fixed bottom-5 right-5 z-50 p-4 rounded-lg shadow-lg text-white transition-all transform translate-x-[calc(100%+2rem)] opacity-0">
+        </div>
+
+    <div id="confirmacaoModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 hidden opacity-0 invisible transition-all duration-300 ease-in-out">
+        <div id="modalOverlay" class="absolute inset-0 bg-black/50 cursor-pointer"></div>
+        
+        <div class="relative w-full max-w-md bg-white rounded-lg shadow-xl p-6">
+            <div class="flex items-start">
+                <div class="flex-shrink-0 flex items-center justify-center h-12 w-12 rounded-full bg-red-100 sm:mx-0 sm:h-10 sm:w-10">
+                    <i class="fas fa-exclamation-triangle text-red-600"></i>
+                </div>
+                <div class="ml-4 text-left">
+                    <h3 class="text-lg font-bold leading-6 text-dark" id="modal-title">
+                        Excluir Registro
+                    </h3>
+                    <div class="mt-2">
+                        <p class="text-sm text-gray-600">
+                            Tem certeza que deseja excluir este registro? Esta ação não pode ser desfeita.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
+                <button id="btnConfirmarExclusao" type="button" class="inline-flex w-full justify-center rounded-md border border-transparent bg-danger px-4 py-2 text-base font-medium text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 sm:ml-3 sm:w-auto sm:text-sm">
+                    Excluir
+                </button>
+                <button id="btnCancelarExclusao" type="button" class="mt-3 inline-flex w-full justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-base font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 sm:mt-0 sm:w-auto sm:text-sm">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+    <script>
+        // --- CONFIGURAÇÃO DO FIREBASE ---
+        const firebaseConfig = {
+          apiKey: "AIzaSyCoIC7XR6N055JQ-XmSmMqVEXXFMtyqFL8", 
+          authDomain: "sistema-de-registro-de-frota.firebaseapp.com",
+          projectId: "sistema-de-registro-de-frota",
+          storageBucket: "sistema-de-registro-de-frota.firebasestorage.app",
+          messagingSenderId: "32018245872",
+          appId: "1:32018245872:web:aadc8dc732e8a0bbdeba35",
+          measurementId: "G-YG7NSFY35W"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const registrosCollection = db.collection("registros");
+        // --- FIM DA CONFIGURAÇÃO DO FIREBASE ---
+
+
+        // --- Lista Mestra (Mantida para auto-completar) ---
+        const VEICULOS_MASTER_LIST = [
+            { placa: 'BOJ2C46', frota: '38221', tipo: 'Caminhão' }, { placa: 'BPJ0D32', frota: '100321', tipo: 'Carro' },
+            { placa: 'BPR2J81', frota: '38120', tipo: 'Caminhão' }, { placa: 'BQB9541', frota: '17119', tipo: 'Ônibus' },
+            { placa: 'BYI4A53', frota: '17221', tipo: 'Ônibus' }, { placa: 'BZG0C49', frota: '38220', tipo: 'Caminhão' },
+            { placa: 'BZK4I31', frota: '33120', tipo: 'Caminhão' }, { placa: 'CFZ7I82', frota: '33220', tipo: 'Caminhão' },
+            { placa: 'CTH3G87', frota: '41121', tipo: 'Caminhão' }, { placa: 'CYH4603', frota: '41102', tipo: 'Caminhão' },
+            { placa: 'CYH4607', frota: '638', tipo: 'Caminhão' }, { placa: 'CYH4695', frota: '42103', tipo: 'Caminhão' },
+            { placa: 'CYH4726', frota: '672', tipo: 'Caminhão' }, { placa: 'CYH4836', frota: '41104', tipo: 'Caminhão' },
+            { placa: 'CYH4H24', frota: '668', tipo: 'Caminhão' }, { placa: 'CYH4H28', frota: '674', tipo: 'Caminhão' },
+            { placa: 'CYH4H29', frota: '676', tipo: 'Caminhão' }, { placa: 'DAH9G70', frota: '33111', tipo: 'Caminhão' },
+            { placa: 'DHQ6J37', frota: '38121', tipo: 'Caminhão' }, { placa: 'DNZ4487', frota: '698', tipo: 'Caminhão' },
+            { placa: 'DNZ4F69', frota: '42205', tipo: 'Caminhão' }, { placa: 'DNZ4F71', frota: '42105', tipo: 'Caminhão' },
+            { placa: 'DPJ999I', frota: '17319', tipo: 'Ônibus' }, { placa: 'DZF0F97', frota: '17121', tipo: 'Caminhão' },
+            { placa: 'ECZ8B95', frota: '100219', tipo: 'Carro' }, { placa: 'EDL4451', frota: '41309', tipo: 'Caminhão' },
+            { placa: 'EDL4453', frota: '41509', tipo: 'Caminhão' }, { placa: 'EDL4456', frota: '41109', tipo: 'Caminhão' },
+            { placa: 'EDL4457', frota: '41409', tipo: 'Caminhão' }, { placa: 'EDL4585', frota: '100109', tipo: 'Carro' },
+            { placa: 'EDL4911', frota: '38110', tipo: 'Caminhão' }, { placa: 'EDL4926', frota: '33410', tipo: 'Caminhão' },
+            { placa: 'EDL4929', frota: '33110', tipo: 'Caminhão' }, { placa: 'EDL4G93', frota: '635', tipo: 'Caminhão' },
+            { placa: 'EDL4J12', frota: '38210', tipo: 'Caminhão' }, { placa: 'EDL4J14', frota: '38310', tipo: 'Caminhão' },
+            { placa: 'EDL4J16', frota: '39110', tipo: 'Caminhão' }, { placa: 'EDL4J21', frota: '30110', tipo: 'Caminhão' },
+            { placa: 'EDZ3J24', frota: '525', tipo: 'Caminhão' }, { placa: 'EIR9G44', frota: '100121', tipo: 'Carro' },
+            { placa: 'ELE9A51', frota: '36319', tipo: 'Caminhão' }, { placa: 'EMH8E51', frota: '36219', tipo: 'Caminhão' },
+            { placa: 'EQK5I01', frota: '461925', tipo: 'Carro' }, { placa: 'ERS7543', frota: '100112', tipo: 'Carro' },
+            { placa: 'ERS7791', frota: '100212', tipo: 'Carro' }, { placa: 'ERS7D61', frota: '42111', tipo: 'Caminhão' },
+            { placa: 'ERS7E33', frota: '691', tipo: 'Caminhão' }, { placa: 'ETJ2B61', frota: '461325', tipo: 'Carro' },
+            { placa: 'EUC0721', frota: '17419', tipo: 'Caminhão' }, { placa: 'EVV2321', frota: '17219', tipo: 'Carro' },
+            { placa: 'FBF1E51', frota: '311017', tipo: 'Caminhão' }, { placa: 'FBV0031', frota: '100117', tipo: 'Carro' },
+            { placa: 'FHZ9704', frota: '35113', tipo: 'Caminhão' }, { placa: 'FHZ9713', frota: '38113', tipo: 'Caminhão' },
+            { placa: 'FHZ9716', frota: '31913', tipo: 'Caminhão' }, { placa: 'FHZ9H02', frota: '42113', tipo: 'Caminhão' },
+            { placa: 'FHZ9H05', frota: '31213', tipo: 'Caminhão' }, { placa: 'FHZ9H11', frota: '31613', tipo: 'Caminhão' },
+            { placa: 'FHZ9H15', frota: '42213', tipo: 'Caminhão' }, { placa: 'FPA0147', frota: '101416', tipo: 'Carro' },
+            { placa: 'FPM2226', frota: '101116', tipo: 'Carro' }, { placa: 'FPM4G11', frota: '30118', tipo: 'Caminhão' },
+            { placa: 'FUW9J63', frota: '467925', tipo: 'Carro' }, { placa: 'FVJ2F13', frota: '461225', tipo: 'Carro' },
+            { placa: 'FVT1055', frota: '101118', tipo: 'Carro' }, { placa: 'FVX3E46', frota: '44122', tipo: 'Caminhão' },
+            { placa: 'FXJ2239', frota: '100118', tipo: 'Carro' }, { placa: 'FYP7077', frota: '100318', tipo: 'Carro' },
+            { placa: 'GAI2C77', frota: '31415', tipo: 'Caminhão' }, { placa: 'GCK7G21', frota: '460124', tipo: 'Carro' },
+            { placa: 'GDH4E48', frota: '31116', tipo: 'Caminhão' }, { placa: 'GDN8G00', frota: '31215', tipo: 'Caminhão' },
+            { placa: 'GEE4G88', frota: '31216', tipo: 'Caminhão' }, { placa: 'GEJ4747', frota: '100116', tipo: 'Carro' },
+            { placa: 'GEQ9B71', frota: '461125', tipo: 'Carro' }, { placa: 'GEX8A26', frota: '31917', tipo: 'Caminhão' },
+            { placa: 'GEX8I81', frota: '31315', tipo: 'Caminhão' }, { placa: 'GFG8D38', frota: '31515', tipo: 'Caminhão' },
+            { placa: 'GFV9988', frota: '31316', tipo: 'Caminhão' }, { placa: 'GGA7H23', frota: '31615', tipo: 'Caminhão' },
+            { placa: 'GGS4G64', frota: '311215', tipo: 'Caminhão' }, { placa: 'GHF0I80', frota: '31115', tipo: 'Caminhão' },
+            { placa: 'GHH8A65', frota: '38122', tipo: 'Caminhão' }, { placa: 'GHO3H41', frota: '100221', tipo: 'Carro' },
+            { placa: 'GHV2068', frota: '101318', tipo: 'Carro' }, { placa: 'GIC4600', frota: '100716', tipo: 'Carro' },
+            { placa: 'GIO0D06', frota: '31417', tipo: 'Caminhão' }, { placa: 'GJU0A79', frota: '311115', tipo: 'Caminhão' },
+            { placa: 'GKG9902', frota: '100418', tipo: 'Carro' }, { placa: 'HMW2G04', frota: '41709', tipo: 'Caminhão' },
+            { placa: 'STD8D35', frota: '460925', tipo: 'Carro' }, { placa: 'STE2I99', frota: '17123', tipo: 'Ônibus' },
+            { placa: 'SVA9F34', frota: '461425', tipo: 'Carro' }, { placa: 'SVD9J36', frota: '461525', tipo: 'Carro' },
+            { placa: 'SWC3A38', frota: '42123', tipo: 'Caminhão' }, { placa: 'SWC6B69', frota: '41123', tipo: 'Caminhão' },
+            { placa: 'SYX6F42', frota: '460424', tipo: 'Carro' }, { placa: 'SYX6F43', frota: '460324', tipo: 'Carro' },
+            { placa: 'SYX6F44', frota: '460524', tipo: 'Carro' }, { placa: 'SYX6F46', frota: '460624', tipo: 'Carro' },
+            { placa: 'TBA9E79', frota: '31525', tipo: 'Caminhão' }, { placa: 'TBA9E80', frota: '31825', tipo: 'Caminhão' },
+            { placa: 'TBA9E81', frota: '31625', tipo: 'Caminhão' }, { placa: 'TBA9E83', frota: '311125', tipo: 'Caminhão' },
+            { placa: 'TBA9E84', frota: '312025', tipo: 'Caminhão' }, { placa: 'TBB0F44', frota: '311025', tipo: 'Caminhão' },
+            { placa: 'TBB0F45', frota: '311325', tipo: 'Caminhão' }, { placa: 'TBB0F46', frota: '31925', tipo: 'Caminhão' },
+            { placa: 'TBB0F47', frota: '311525', tipo: 'Caminhão' }, { placa: 'TBB0F48', frota: '31725', tipo: 'Caminhão' },
+            { placa: 'TBB0F49', frota: '311725', tipo: 'Caminhão' }, { placa: 'TBB0F52', frota: '311825', tipo: 'Caminhão' },
+            { placa: 'TBB0F53', frota: '311925', tipo: 'Caminhão' }, { placa: 'TBB0F54', frota: '31125', tipo: 'Caminhão' },
+            { placa: 'TBB0F56', frota: '31325', tipo: 'Caminhão' }, { placa: 'TBB0F57', frota: '311425', tipo: 'Caminhão' },
+            { placa: 'TBB0F59', frota: '311625', tipo: 'Caminhão' }, { placa: 'TBB0F60', frota: '311225', tipo: 'Caminhão' },
+            { placa: 'TBB0F61', frota: '31425', tipo: 'Caminhão' }, { placa: 'TBB0F62', frota: '31225', tipo: 'Caminhão' },
+            { placa: 'TEB4C06', frota: '460625', tipo: 'Caminhão' }, { placa: 'TEB4C07', frota: '460525', tipo: 'Carro' },
+            { placa: 'TEB4C08', frota: '460125', tipo: 'Carro' }, { placa: 'TEB4C09', frota: '460225', tipo: 'Carro' },
+            { placa: 'TEB4C10', frota: '460725', tipo: 'Carro' }, { placa: 'TEB4C11', frota: '460825', tipo: 'Carro' },
+            { placa: 'TEB4C12', frota: '460325', tipo: 'Carro' }, { placa: 'TEB4C13', frota: '460425', tipo: 'Carro' },
+            { placa: 'TEH1H66', frota: '461625', tipo: 'Carro' }, { placa: 'TEI0B86', frota: '461825', tipo: 'Carro' },
+            { placa: 'TEI0D84', frota: '461725', tipo: 'Carro' }, { placa: 'TEL1I57', frota: '462725', tipo: 'Carro' },
+            { placa: 'TEL1I60', frota: '462125', tipo: 'Carro' }, { placa: 'TEL2A01', frota: '462925', tipo: 'Carro' },
+            { placa: 'TEL2A02', frota: '462425', tipo: 'Carro' }, { placa: 'TEL2A03', frota: '462325', tipo: 'Carro' },
+            { placa: 'TEL2A04', frota: '463025', tipo: 'Carro' }, { placa: 'TEL2A05', frota: '468025', tipo: 'Carro' },
+            { placa: 'TEL2A06', frota: '462625', tipo: 'Carro' }, { placa: 'TEL2A07', frota: '467625', tipo: 'Carro' },
+            { placa: 'TEL2A08', frota: '463225', tipo: 'Carro' }, { placa: 'TEL2A09', frota: '467425', tipo: 'Carro' },
+            { placa: 'TEL2A10', frota: '462025', tipo: 'Carro' }, { placa: 'TEL2A11', frota: '462225', tipo: 'Carro' },
+            { placa: 'TEL2A12', frota: '463325', tipo: 'Carro' }, { placa: 'TEL2A22', frota: '463125', tipo: 'Carro' },
+            { placa: 'TEL2A23', frota: '467525', tipo: 'Carro' }, { placa: 'TEL2A24', frota: '463425', tipo: 'Carro' },
+            { placa: 'TEL2A25', frota: '463525', tipo: 'Carro' }, { placa: 'TEL2A26', frota: '467725', tipo: 'Carro' },
+            { placa: 'TEL2A27', frota: '463625', tipo: 'Carro' }, { placa: 'TEL2A28', frota: '462525', tipo: 'Carro' },
+            { placa: 'TEL2A29', frota: '462825', tipo: 'Carro' }, { placa: 'TEY1C73', frota: '468125', tipo: 'Carro' },
+            { placa: 'TIQ9J77', frota: '461025', tipo: 'Carro' }, { placa: 'TJA3J22', frota: '100224', tipo: 'Carro' },
+            { placa: 'TJC4A21', frota: '467825', tipo: 'Carro' }, { placa: 'TJV6H13', frota: '100125', tipo: 'Carro' },
+            { placa: 'TKM4D47', frota: '100124', tipo: 'Carro' }, { placa: 'TKV0D54', frota: '100325', tipo: 'Carro' }
+        ];
+        // --- FIM DA LISTA MESTRA ---
+
+
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Seletores ---
+            const form = document.getElementById('logForm');
+            const inputFrota = document.getElementById('inputFrota'); 
+            const inputPlaca = document.getElementById('inputPlaca');
+            // (NOVO) Seletor do Motorista
+            const inputMotorista = document.getElementById('inputMotorista');
+            const inputTipo = document.getElementById('inputTipo');
+            const inputData = document.getElementById('inputData'); 
+            const tableBody = document.getElementById('tableBody');
+            const searchInput = document.getElementById('searchInput');
+            const notification = document.getElementById('notification');
+            const noResultsRow = document.getElementById('no-results-row');
+            let notificationTimer;
+
+            // --- Seletores do Modal ---
+            const modal = document.getElementById('confirmacaoModal');
+            const modalOverlay = document.getElementById('modalOverlay');
+            const btnConfirmarExclusao = document.getElementById('btnConfirmarExclusao');
+            const btnCancelarExclusao = document.getElementById('btnCancelarExclusao');
+            
+            let docIdParaExcluir = null;
+
+            // --- Funções para controlar o Modal ---
+            function showModal() {
+                modal.classList.remove('hidden', 'opacity-0', 'invisible');
+                modal.classList.add('opacity-100', 'visible');
+            }
+            function hideModal() {
+                modal.classList.remove('opacity-100', 'visible');
+                modal.classList.add('opacity-0', 'invisible');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                    docIdParaExcluir = null; 
+                }, 300);
+            }
+
+            // --- Event Listeners do Modal ---
+            btnConfirmarExclusao.addEventListener('click', () => {
+                if (docIdParaExcluir) {
+                    registrosCollection.doc(docIdParaExcluir).delete()
+                        .then(() => {
+                            showNotification('Registro excluído.', 'success');
+                        })
+                        .catch((error) => {
+                            console.error("Erro ao excluir registro: ", error);
+                            showNotification('Erro ao excluir registro.', 'error');
+                        });
+                }
+                hideModal();
+            });
+            btnCancelarExclusao.addEventListener('click', hideModal);
+            modalOverlay.addEventListener('click', hideModal);
+
+
+            // --- INICIALIZA O FLATPICKR (CALENDÁRIO) ---
+            flatpickr(inputData, {
+                enableTime: true,
+                dateFormat: "d/m/Y H:i",
+                time_24hr: true,
+                locale: "pt",
+                defaultDate: new Date()
+            });
+
+            // --- Funções de inicialização ---
+            popularFrotaDataList();
+            carregarDadosSalvos();
+
+            
+            // --- LÓGICA DE AUTO-PREENCHIMENTO (Sem alteração) ---
+            inputFrota.addEventListener('input', () => {
+                const frotaDigitada = inputFrota.value.trim();
+                const veiculo = VEICULOS_MASTER_LIST.find(v => v.frota === frotaDigitada);
+                if (veiculo) {
+                    inputPlaca.value = veiculo.placa;
+                    inputTipo.value = veiculo.tipo;
+                } else {
+                    inputPlaca.value = '';
+                    inputTipo.value = '';
+                }
+            });
+            inputPlaca.addEventListener('input', () => {
+                const placaDigitada = inputPlaca.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
+                if (placaDigitada.length < 3) {
+                     inputFrota.value = '';
+                     inputTipo.value = '';
+                     return;
+                }
+                const veiculo = VEICULOS_MASTER_LIST.find(v => 
+                    v.placa.toUpperCase().replace(/[^A-Z0-9]/g, '') === placaDigitada
+                );
+                if (veiculo) {
+                    inputFrota.value = veiculo.frota; 
+                    inputTipo.value = veiculo.tipo;
+                } else {
+                    inputFrota.value = '';
+                    inputTipo.value = '';
+                }
+            });
+
+
+            // --- Evento de 'Submit' (MODIFICADO PARA INCLUIR MOTORISTA) ---
+            form.addEventListener('submit', (evento) => {
+                evento.preventDefault(); 
+                
+                // 1. Pega os dados do formulário
+                const frota = inputFrota.value; 
+                const placa = inputPlaca.value;
+                // (NOVO) Pega o motorista
+                const motorista = inputMotorista.value;
+                const tipo = inputTipo.value;
+                const motivo = document.getElementById('inputMotivo').value;
+                const dataFormatada = inputData.value;
+                
+                const flatpickrInstance = inputData._flatpickr;
+                const selectedDate = flatpickrInstance.selectedDates[0];
+
+                // 2. Validação
+                if (!tipo) {
+                    showNotification('Frota ou Placa inválida. Verifique os dados.', 'error');
+                    return;
+                }
+                if (!dataFormatada) {
+                    showNotification('Por favor, preencha a Data e o Horário.', 'error');
+                    return;
+                }
+                // (NOVO) Validação do motorista
+                if (!motorista) {
+                    showNotification('Por favor, preencha o nome do motorista.', 'error');
+                    return;
+                }
+
+                // 3. Cria um objeto de dados para o Firebase
+                const novoRegistro = {
+                    frota: frota,
+                    placa: placa,
+                    motorista: motorista, // (NOVO) Adiciona motorista ao objeto
+                    tipo: tipo,
+                    motivo: motivo,
+                    data: dataFormatada,
+                    timestamp: selectedDate ? firebase.firestore.Timestamp.fromDate(selectedDate) : firebase.firestore.FieldValue.serverTimestamp() 
+                };
+
+                // 4. Salva no Firebase
+                registrosCollection.add(novoRegistro)
+                    .then(() => {
+                        form.reset();
+                        inputTipo.value = '';
+                        flatpickrInstance.clear(); 
+                        flatpickrInstance.setDate(new Date());
+                        showNotification('Registro adicionado com sucesso!', 'success');
+                        inputFrota.focus();
+                    })
+                    .catch((error) => {
+                        console.error("Erro ao adicionar registro: ", error);
+                        showNotification('Erro ao salvar no banco de dados.', 'error');
+                    });
+            });
+
+            // --- Popula o <datalist> (Sem alteração) ---
+            function popularFrotaDataList() {
+                const frotaList = document.getElementById('frotaList');
+                const frotasOrdenadas = [...VEICULOS_MASTER_LIST].sort((a, b) => 
+                    a.frota.localeCompare(b.frota, undefined, { numeric: true })
+                );
+                frotasOrdenadas.forEach(veiculo => {
+                    const option = document.createElement('option');
+                    option.value = veiculo.frota; 
+                    frotaList.appendChild(option);
+                });
+            }
+
+            // --- Filtrar a Tabela (Sem alteração, já funciona) ---
+            function filtrarTabela() {
+                const termoPesquisa = searchInput.value.toLowerCase();
+                const linhas = tableBody.getElementsByTagName('tr');
+                let visibleRowCount = 0; 
+
+                for (let linha of linhas) {
+                    if (linha.id === 'no-results-row') continue; 
+
+                    const textoLinha = linha.textContent.toLowerCase();
+                    if (textoLinha.includes(termoPesquisa)) {
+                        linha.style.display = '';
+                        visibleRowCount++;
+                    } else {
+                        linha.style.display = 'none';
+                    }
+                }
+                
+                if (visibleRowCount === 0) {
+                    noResultsRow.style.display = '';
+                    const totalRows = Array.from(linhas).filter(row => row.id !== 'no-results-row').length;
+                    noResultsRow.querySelector('td').textContent = totalRows > 0 ? 
+                        'Nenhum resultado para sua busca.' : 
+                        'Nenhum registro encontrado.';
+                } else {
+                    noResultsRow.style.display = 'none';
+                }
+            }
+            searchInput.addEventListener('keyup', filtrarTabela);
+
+
+            // --- Adicionar Linha (MODIFICADO PARA INCLUIR MOTORISTA) ---
+            function adicionarLinhaNaTabela(docId, frota, placa, motorista, tipo, motivo, data) {
+                const novaLinha = tableBody.insertRow(); 
+                novaLinha.className = "border-b hover:bg-gray-50";
+                
+                novaLinha.insertCell(0).className = "px-4 py-3";
+                novaLinha.cells[0].textContent = frota;
+                
+                novaLinha.insertCell(1).className = "px-4 py-3";
+                novaLinha.cells[1].textContent = placa;
+                
+                // (NOVO) Célula 2: Motorista
+                novaLinha.insertCell(2).className = "px-4 py-3";
+                novaLinha.cells[2].textContent = motorista;
+
+                // Célula 3: Tipo (era 2)
+                novaLinha.insertCell(3).className = "px-4 py-3";
+                novaLinha.cells[3].textContent = tipo;
+                
+                // Célula 4: Motivo (era 3)
+                novaLinha.insertCell(4).className = "px-4 py-3";
+                novaLinha.cells[4].textContent = motivo;
+                
+                // Célula 5: Data (era 4)
+                const cellData = novaLinha.insertCell(5);
+                cellData.className = "px-4 py-3";
+                const dateSpan = document.createElement('span');
+                dateSpan.className = "inline-block py-2 px-3 bg-gray-100 text-gray-700 text-lg border border-gray-300 rounded-md transition-all duration-200 hover:bg-gray-200 hover:shadow-md cursor-default";
+                dateSpan.textContent = data;
+                cellData.appendChild(dateSpan); 
+                
+                // Célula 6: Ações (era 5)
+                const cellAcoes = novaLinha.insertCell(6);
+                cellAcoes.className = "px-4 py-3"; 
+                
+                const btnExcluir = document.createElement('button');
+                btnExcluir.className = 'text-red-600 hover:text-red-800'; 
+                btnExcluir.title = 'Excluir registro';
+                btnExcluir.innerHTML = '<i class="fas fa-trash"></i>'; 
+                
+                btnExcluir.addEventListener('click', () => {
+                    docIdParaExcluir = docId;
+                    showModal();
+                });
+                cellAcoes.appendChild(btnExcluir);
+            }
+
+
+            // --- Carregar dados (MODIFICADO PARA INCLUIR MOTORISTA) ---
+            function carregarDadosSalvos() {
+                registrosCollection.orderBy("timestamp", "desc")
+                    .onSnapshot((querySnapshot) => {
+                        
+                        const noResultsNode = document.getElementById('no-results-row');
+                        tableBody.innerHTML = "";
+                        tableBody.appendChild(noResultsNode); 
+
+                        let manutencaoCount = 0;
+                        let foraOperacaoCount = 0;
+
+                        if (querySnapshot.empty) {
+                            checkTableEmpty();
+                            return;
+                        }
+
+                        querySnapshot.forEach((doc) => {
+                            const registro = doc.data();
+                            
+                            // (MUDANÇA) Passando o 'registro.motorista' para a função
+                            adicionarLinhaNaTabela(
+                                doc.id,
+                                registro.frota,
+                                registro.placa,
+                                registro.motorista || '', // Usa string vazia se for antigo
+                                registro.tipo,
+                                registro.motivo,
+                                registro.data
+                            );
+
+                            if (registro.motivo.toLowerCase().includes('manutenção')) {
+                                manutencaoCount++;
+                            }
+                            if (registro.motivo.toLowerCase().includes('fora de operação')) {
+                                foraOperacaoCount++;
+                            }
+                        });
+
+                        document.getElementById('stats-manutencao').textContent = manutencaoCount;
+                        document.getElementById('stats-fora-operacao').textContent = foraOperacaoCount;
+
+                        checkTableEmpty();
+                        filtrarTabela();
+                    }, (error) => {
+                        console.error("Erro ao carregar dados: ", error);
+                        showNotification('Erro ao conectar com o banco de dados.', 'error');
+                    });
+            }
+            
+            // --- Mostrar notificação (Sem alteração) ---
+            function showNotification(message, type = 'success') {
+                clearTimeout(notificationTimer);
+                notification.textContent = message;
+                notification.className = 'fixed bottom-5 right-5 z-50 p-4 rounded-lg shadow-lg text-white transition-all transform';
+                
+                if (type === 'success') {
+                    notification.classList.add('bg-green-600');
+                } else {
+                    notification.classList.add('bg-red-600');
+                }
+
+                requestAnimationFrame(() => {
+                    notification.classList.remove('translate-x-[calc(100%+2rem)]', 'opacity-0');
+                    notification.classList.add('translate-x-0', 'opacity-100');
+                });
+
+                notificationTimer = setTimeout(() => {
+                    notification.classList.add('translate-x-[calc(100%+2rem)]', 'opacity-0');
+                    notification.classList.remove('translate-x-0', 'opacity-100');
+                }, 3000);
+            }
+
+            // --- Checar se tabela está vazia (Sem alteração) ---
+            function checkTableEmpty() {
+                const dataRows = Array.from(tableBody.getElementsByTagName('tr')).filter(row => row.id !== 'no-results-row').length;
+                if (dataRows === 0) {
+                    noResultsRow.style.display = '';
+                    noResultsRow.querySelector('td').textContent = 'Nenhum registro encontrado.';
+                } else {
+                    noResultsRow.style.display = 'none';
+                }
+            }
+
+            // --- Navegação Suave (Sem alteração) ---
+            document.querySelectorAll("a[href^='#']").forEach(link => {
+                link.addEventListener("click", function(e) {
+                    e.preventDefault();
+                    const targetId = this.getAttribute("href").substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        targetElement.scrollIntoView({ behavior: "smooth" });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
